@@ -1,0 +1,9 @@
+[package]
+name = "rust-parallel-heat-propagation"
+version = "0.1.0"
+authors = ["nathan <nathan.lcht@gmail.com>"]
+
+[dependencies]
+fps_counter = "1.0"
+image = "0.15"
+piston_window = "0.70"
