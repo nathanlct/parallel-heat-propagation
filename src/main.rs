@@ -67,16 +67,31 @@ fn map_color(value: f64) -> (u8, u8, u8) {
 }
 
 
+/*****************************************************************/
+/*****************************************************************/
+/*****************************************************************/
+
+
 /// Hauteur de la carte de température.
 const HEIGHT: usize = 600;
 // Largeur de la carte de température.
 const WIDTH: usize = 800;
 
+/// Pas temporel de calcul
+const DT: f64 = 1.0e-4;
+/// Pas dimentionel de calcul
+const DX: f64 = 1.0e-1;
 
-fn temp_to_image(mat: &Vec<Vec<f64>>, img: &mut [u8]) {
-    for i in 0..mat.len() {
-        for j in 0..mat[0].len() {
-            let (r, g, b) = map_color(mat[i][j]);
+// Constante dansl'équation de la chaleur
+const K: f64 = 25.0;
+// Nombre de pas entre deux affichages
+const SMALL_STEP: usize = 32;
+
+/// Modifie l'image afin d'afficher une représentation de la matrice des températures
+fn temp_to_image(temp: &Vec<Vec<f64>>, img: &mut [u8]) {
+    for i in 0..temp.len() {
+        for j in 0..temp[0].len() {
+            let (r, g, b) = map_color(temp[i][j]);
             img[4 * (i * WIDTH + j)] = r;
             img[4 * (i * WIDTH + j) + 1] = g;
             img[4 * (i * WIDTH + j) + 2] = b;
@@ -85,33 +100,48 @@ fn temp_to_image(mat: &Vec<Vec<f64>>, img: &mut [u8]) {
     }
 }
 
-/// Pas temporel de calcul.
-const DT: f64 = 1.0e-1;
-/// Pas dimentionel de calcul.
-const DX: f64 = 1.0e-1;
+/// Calcule la distribution de température
+fn u(x: usize, y: usize, t: f64) -> f64 {
+    ((t + (x as f64) + (y as f64)) / std::f64::consts::PI).sin()
+}
 
-use std::f64;
+/// Calcule une nouvelle distribution de température à t+dt en fonction de l'ancienne à t
+fn small_step(old_temp: &Vec<Vec<f64>>, new_temp: &mut Vec<Vec<f64>>, time: f64) {
+    for i in 0..new_temp.len() {
+        for j in 0..new_temp[0].len() {
+            let left = if j > 0 { old_temp[i][j-1] } else { u(j, i, time) };
+            let right = if j < WIDTH-1 { old_temp[i][j+1] } else { u(j, i, time) };
+            let top = if i > 0 { old_temp[i-1][j] } else { u(j, i, time) };
+            let bottom = if i < HEIGHT-1 { old_temp[i+1][j] } else { u(j, i, time) };
 
-fn u(x: f64, y: f64, t: f64) -> f64 {
-    f64::sin((t + x + y) / std::f64::consts::PI)
+            new_temp[i][j] = left + right + top + bottom;
+            new_temp[i][j] -= 4.0 * old_temp[i][j];
+            new_temp[i][j] *= K * DT / (DX * DX);
+            new_temp[i][j] += old_temp[i][j];
+        }
+    }
 }
 
 fn main() {
 
     let mut iter : usize = 0;
 
+    let row = vec![-1.0; WIDTH];
+    let mut temp_a : Vec<Vec<f64>> = vec![row; HEIGHT];
+    // for i in 0..250 { for j in 0..650 { temp_a[200+i][60+j] = 1.0; } }
+    let row = vec![-1.0; WIDTH];
+    let mut temp_b : Vec<Vec<f64>> = vec![row; HEIGHT];
+
     display("Propagation de la chaleur 2D", HEIGHT, WIDTH, |image| {
 
-        let mut distribution = Vec::new();
-        for i in 0..HEIGHT {
-            let mut line = Vec::new();
-            for j in 0..WIDTH {
-                line.push(u((j as f64) * DX, (i as f64) * DX, (iter as f64) * DT));
-            }
-            distribution.push(line);
+        for _ in 0..SMALL_STEP {
+            if iter % 2 == 0 { small_step(&temp_a, &mut temp_b, (iter as f64) * DT); }
+            else { small_step(&temp_b, &mut temp_a, (iter as f64) * DT); }
+            iter += 1;
         }
-        iter += 1;
 
-        temp_to_image(&distribution, image);
+        if iter % 2 == 0 { temp_to_image(&temp_a, image); }
+        else { temp_to_image(&temp_b, image); }
+
     });
 }

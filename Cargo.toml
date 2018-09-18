@@ -1,5 +1,5 @@
 [package]
-name = "rust-parallel-heat-propagation"
+name = "parallel-heat-propagation"
 version = "0.1.0"
 authors = ["nathan <nathan.lcht@gmail.com>"]
 

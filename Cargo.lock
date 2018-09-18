@@ -607,6 +607,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "parallel-heat-propagation"
+version = "0.1.0"
+dependencies = [
+ "fps_counter 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "image 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "piston_window 0.70.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "phf"
 version = "0.7.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -871,15 +880,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "redox_syscall"
 version = "0.1.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "rust-parallel-heat-propagation"
-version = "0.1.0"
-dependencies = [
- "fps_counter 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "image 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "piston_window 0.70.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "rusttype"
